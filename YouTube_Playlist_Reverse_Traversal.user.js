@@ -5,6 +5,8 @@
 // @description  Adds a reverse playlist toggle inside YouTube's playlist panel and swaps Previous/Next controls when enabled.
 // @match        https://www.youtube.com/*
 // @match        https://m.youtube.com/*
+// @updateURL    https://raw.githubusercontent.com/ramhaidar/YouTube-Playlist-Reverse-Traversal/main/YouTube_Playlist_Reverse_Traversal.user.js
+// @downloadURL  https://raw.githubusercontent.com/ramhaidar/YouTube-Playlist-Reverse-Traversal/main/YouTube_Playlist_Reverse_Traversal.user.js
 // @run-at       document-start
 // @grant        none
 // @noframes

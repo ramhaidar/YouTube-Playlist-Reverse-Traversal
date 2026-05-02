@@ -73,16 +73,13 @@ Desktop YouTube playlist watch pages are the primary target. Mobile YouTube is i
 
 ## Installation
 
-### Option 1: Install manually from the file
+### Option 1: Install from GitHub
 
 1. Install a userscript manager in your browser.
-2. Open your userscript manager's dashboard.
-3. Create a new script.
-4. Copy the full contents of [`YouTube_Playlist_Reverse_Traversal.user.js`](./YouTube_Playlist_Reverse_Traversal.user.js).
-5. Paste it into the new userscript.
-6. Save the script.
-7. Make sure the script is enabled.
-8. Open a YouTube playlist watch page.
+2. Open the raw userscript install link: [`YouTube_Playlist_Reverse_Traversal.user.js`](https://raw.githubusercontent.com/ramhaidar/YouTube-Playlist-Reverse-Traversal/main/YouTube_Playlist_Reverse_Traversal.user.js).
+3. If your userscript manager detects the file, confirm the installation prompt.
+4. Make sure the script is enabled.
+5. Open a YouTube playlist watch page.
 
 ### Option 2: Import the local file
 
@@ -460,6 +457,8 @@ Current userscript metadata:
 // @description  Adds a reverse playlist toggle inside YouTube's playlist panel and swaps Previous/Next controls when enabled.
 // @match        https://www.youtube.com/*
 // @match        https://m.youtube.com/*
+// @updateURL    https://raw.githubusercontent.com/ramhaidar/YouTube-Playlist-Reverse-Traversal/main/YouTube_Playlist_Reverse_Traversal.user.js
+// @downloadURL  https://raw.githubusercontent.com/ramhaidar/YouTube-Playlist-Reverse-Traversal/main/YouTube_Playlist_Reverse_Traversal.user.js
 // @run-at       document-start
 // @grant        none
 // @noframes
