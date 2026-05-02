@@ -18,6 +18,32 @@ It is designed for playlists that are displayed newest-to-oldest, where YouTube'
 - Restores YouTube's original button state when reverse mode is disabled or when leaving a playlist watch page.
 - Runs without external dependencies, build tools, or userscript manager grants.
 
+## Screenshots
+
+### Reverse playlist toggle
+
+![Reverse playlist toggle button](Images/Reverse%20Playlist%20Button.png)
+
+### Next button behavior
+
+Without the userscript, YouTube's **Next** control points to YouTube's normal next playlist item:
+
+![Next button without userscript](Images/Next%20%28Without%20Userscript%29.png)
+
+With reverse mode enabled, the **Next** control points to the previous visible playlist item instead:
+
+![Next button with userscript](Images/Next%20%28With%20Userscript%29.png)
+
+### Previous button behavior
+
+Without the userscript, YouTube's **Previous** control points to YouTube's normal previous playlist item:
+
+![Previous button without userscript](Images/Previous%20%28Without%20Userscript%29.png)
+
+With reverse mode enabled, the **Previous** control points to the next visible playlist item instead:
+
+![Previous button with userscript](Images/Previous%20%28With%20Userscript%29.png)
+
 ## Intended use case
 
 Some YouTube playlists are visually ordered like this:
@@ -45,6 +71,12 @@ The script does **not** visually reorder the playlist. It changes how traversal 
 
 ```text
 .
+├── Images
+│   ├── Next (With Userscript).png
+│   ├── Next (Without Userscript).png
+│   ├── Previous (With Userscript).png
+│   ├── Previous (Without Userscript).png
+│   └── Reverse Playlist Button.png
 ├── README.md
 └── YouTube_Playlist_Reverse_Traversal.user.js
 ```
@@ -369,6 +401,12 @@ Check the following:
 
 If the player buttons changed internally, the script may need updated selectors for `.ytp-next-button` or `.ytp-prev-button` behavior.
 
+### Prev/Next become empty after turning reverse mode off
+
+Older versions could occasionally restore early `null` button attributes if the page loaded while reverse mode was already enabled, then the toggle was turned off before YouTube had fully populated the native player controls.
+
+Version `2026.05.02.3` avoids capturing uninitialized controls and reconstructs normal Prev/Next targets from the visible playlist when no safe original snapshot is available. If this still happens, refresh the playlist watch page and confirm you are running the latest userscript version.
+
 ### Auto-advance does not work
 
 Possible causes:
@@ -453,7 +491,7 @@ Current userscript metadata:
 ```javascript
 // @name         YouTube Playlist Reverse Traversal
 // @namespace    local.youtube.playlist.reverse
-// @version      2026.05.02.2
+// @version      2026.05.02.3
 // @description  Adds a reverse playlist toggle inside YouTube's playlist panel and swaps Previous/Next controls when enabled.
 // @match        https://www.youtube.com/*
 // @match        https://m.youtube.com/*
