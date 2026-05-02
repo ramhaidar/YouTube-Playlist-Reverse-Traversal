@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Playlist Reverse Traversal
 // @namespace    local.youtube.playlist.reverse
-// @version      2026.05.02.2
+// @version      2026.05.02.3
 // @description  Adds a reverse playlist toggle inside YouTube's playlist panel and swaps Previous/Next controls when enabled.
 // @match        https://www.youtube.com/*
 // @match        https://m.youtube.com/*
@@ -352,6 +352,12 @@
     return null;
   };
 
+  const getNativeTargetForControl = (control) => {
+    if (control === "next") return getRelativePlayableItem(1);
+    if (control === "prev") return getRelativePlayableItem(-1);
+    return null;
+  };
+
   const navigateToItem = (item) => {
     const info = getItemInfo(item);
     if (!info?.href) return false;
@@ -425,21 +431,41 @@
     },
   ];
 
+  const getButtonState = (button) => ({
+    href: button.getAttribute("href"),
+    title: button.getAttribute("title"),
+    ariaLabel: button.getAttribute("aria-label"),
+    ariaDisabled: button.getAttribute("aria-disabled"),
+    dataPreview: button.getAttribute("data-preview"),
+    dataTooltipText: button.getAttribute("data-tooltip-text"),
+    dataTitleNoTooltip: button.getAttribute("data-title-no-tooltip"),
+    dataTooltipTitle: button.getAttribute("data-tooltip-title"),
+  });
+
+  const hasUsableButtonState = (state) => {
+    return Boolean(
+      state?.href ||
+        state?.title ||
+        state?.ariaLabel ||
+        state?.dataTooltipText ||
+        state?.dataTooltipTitle ||
+        state?.ariaDisabled != null
+    );
+  };
+
   const captureOriginalButtonState = (button) => {
     const videoId = getCurrentVideoId();
 
-    if (button.__ytReverseOriginal?.videoId === videoId) return;
+    if (button.__ytReverseManaged) return;
+    if (button.__ytReverseOriginal?.videoId === videoId && button.__ytReverseOriginal.usable) return;
+
+    const state = getButtonState(button);
+    if (!hasUsableButtonState(state)) return;
 
     button.__ytReverseOriginal = {
       videoId,
-      href: button.getAttribute("href"),
-      title: button.getAttribute("title"),
-      ariaLabel: button.getAttribute("aria-label"),
-      ariaDisabled: button.getAttribute("aria-disabled"),
-      dataPreview: button.getAttribute("data-preview"),
-      dataTooltipText: button.getAttribute("data-tooltip-text"),
-      dataTitleNoTooltip: button.getAttribute("data-title-no-tooltip"),
-      dataTooltipTitle: button.getAttribute("data-tooltip-title"),
+      usable: true,
+      ...state,
     };
   };
 
@@ -462,6 +488,56 @@
     restoreAttr("data-tooltip-title", original.dataTooltipTitle);
 
     delete button.__ytReverseOriginal;
+    button.__ytReverseManaged = false;
+  };
+
+  const applyNativeControlTarget = (button, config) => {
+    const targetItem = getNativeTargetForControl(config.control);
+    const targetInfo = getItemInfo(targetItem);
+
+    if (!targetInfo) {
+      button.removeAttribute("href");
+      button.setAttribute("aria-disabled", "true");
+      button.setAttribute("title", `No ${config.normalName.toLowerCase()} item in playlist`);
+      button.setAttribute("aria-label", `No ${config.normalName.toLowerCase()} item in playlist`);
+      button.setAttribute("data-tooltip-text", "End of playlist");
+      button.setAttribute("data-title-no-tooltip", config.normalName);
+      button.setAttribute("data-tooltip-title", button.getAttribute("title"));
+      button.removeAttribute("data-preview");
+      button.__ytReverseManaged = false;
+      return;
+    }
+
+    const title = `${config.normalName} (${config.shortcut})`;
+
+    button.setAttribute("href", targetInfo.href);
+    button.setAttribute("aria-disabled", "false");
+    button.setAttribute("title", title);
+    button.setAttribute(
+      "aria-label",
+      `${config.normalName} keyboard shortcut ${config.shortcut}`
+    );
+    button.setAttribute("data-title-no-tooltip", config.normalName);
+    button.setAttribute("data-tooltip-title", title);
+    button.setAttribute("data-tooltip-text", targetInfo.title);
+
+    if (targetInfo.preview) {
+      button.setAttribute("data-preview", targetInfo.preview);
+    } else {
+      button.removeAttribute("data-preview");
+    }
+
+    button.__ytReverseManaged = false;
+  };
+
+  const restoreNativeButtonState = (button, config) => {
+    if (button.__ytReverseOriginal?.usable) {
+      restoreOriginalButtonState(button);
+      return;
+    }
+
+    applyNativeControlTarget(button, config);
+    delete button.__ytReverseOriginal;
   };
 
   const applyControlTarget = (button, config) => {
@@ -469,6 +545,7 @@
     const targetInfo = getItemInfo(targetItem);
 
     captureOriginalButtonState(button);
+    button.__ytReverseManaged = true;
 
     if (!targetInfo) {
       button.removeAttribute("href");
@@ -480,6 +557,7 @@
       );
       button.setAttribute("data-tooltip-text", "End of reversed playlist");
       button.setAttribute("data-tooltip-title", button.getAttribute("title"));
+      button.removeAttribute("data-preview");
       return;
     }
 
@@ -495,6 +573,8 @@
 
     if (targetInfo.preview) {
       button.setAttribute("data-preview", targetInfo.preview);
+    } else {
+      button.removeAttribute("data-preview");
     }
   };
 
@@ -506,7 +586,7 @@
       if (getEnabled() && isWatchWithPlaylist()) {
         applyControlTarget(button, config);
       } else {
-        restoreOriginalButtonState(button);
+        restoreNativeButtonState(button, config);
       }
     }
   };
